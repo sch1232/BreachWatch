@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>BreachWatch</title>
+    <style>
+        /* Base styles and transitions */
+        body {
+            background: #141414;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .light-mode {
+            background: #f9f9f9;
+            color: #222;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: #222;
+            color: #fff;
+            user-select: none;
+            transition: background 0.3s, color 0.3s;
+        }
+        .light-mode header {
+            background: #fff;
+            color: #222;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            user-select: none;
+            text-decoration: none;
+            color: inherit;
+        }
+        .logo:hover {
+            color: #d6006c;
+        }
+        main {
+            flex-grow: 1;
+            padding: 24px 16px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            font-size: 0.9em;
+            user-select: none;
+            transition: color 0.3s;
+        }
+        .light-mode footer {
+            color: #999;
+        }
+        /* Buttons and inputs */
+        button, input[type="text"], input[type="password"] {
+            font-family: inherit;
+            font-size: 1em;
+            border-radius: 6px;
+            transition: background 0.25s, color 0.25s, border-color 0.25s;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            border: 1.5px solid #444;
+            background: #222;
+            color: #eee;
+            box-sizing: border-box;
+        }
+        .light-mode input[type="text"], .light-mode input[type="password"] {
+            background: #fff;
+            color: #222;
+            border: 1.5px solid #ccc;
+        }
+        button { cursor: pointer; }
+        .btn-primary {
+            background: linear-gradient(90deg, #ff8300, #d6006c);
+            border: none;
+            color: white;
+            padding: 14px 0;
+            width: 100%;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(214, 0, 108, 0.4);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #ff6000, #bf0052);
+            box-shadow: 0 4px 14px rgba(214, 0, 108, 0.6);
+        }
+        #logout {
+            background: #222;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border:none;
+            user-select:none;
+            transition: background 0.25s;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        #logout:hover { background: #444; }
+        .light-mode #logout { background: #ddd; color: #222; }
+        .light-mode #logout:hover { background: #bbb; }
+        /* Auth container */
+        #auth-box {
+            background: #1f1f1f;
+            border-radius: 18px;
+            max-width: 400px;
+            padding: 36px 40px;
+            margin: 48px auto;
+            box-shadow: 0 12px 24px rgba(214, 0, 108, 0.3);
+            transition: background 0.3s, color 0.3s;
+        }
+        .light-mode #auth-box {
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(214, 0, 108, 0.15);
+            color: #222;
+        }
+        #auth-box h2 {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 24px;
+            font-size: 1.8em;
+        }
+        /* Professional Login/Register tabs */
+        #auth-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            user-select: none;
+            position: relative;
+            background: #292929;
+            border-radius: 50px;
+            padding: 8px;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: inset 0 0 15px rgba(214, 0, 108, 0.45);
+            transition: background 0.3s;
+        }
+        .light-mode #auth-tabs { background: #eee; box-shadow: inset 0 0 20px rgba(214, 0, 108, 0.15); }
+        #auth-tabs button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #ccc;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding: 14px 0;
+            border-radius: 40px;
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+        #auth-tabs button:hover:not(.active) { color: #ff4281; }
+        #auth-tabs button.active {
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(214, 0, 108, 0.7);
+            background: linear-gradient(135deg, #ff6f00 0%, #d6006c 100%);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        /* Main App */
+        #main-app { max-width: 900px; margin: 36px auto 60px auto; }
+        /* Top tabs */
+        .tabs { display: flex; justify-content: center; margin-bottom: 16px; user-select: none; }
+        .tabs button {
+            flex: none;
+            padding: 12px 32px;
+            font-weight: 600;
+            font-size: 1.1em;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            margin: 0 6px;
+            cursor: pointer;
+            background: transparent;
+            color: #bbb;
+            transition: all 0.3s ease;
+        }
+        .tabs button.active {
+            background: linear-gradient(90deg, #ff8300, #d6006c);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(214, 0, 108, 0.6);
+            border-color: transparent;
+        }
+        .tabs button:hover:not(.active) { color: #fff; border-color: #d6006c; }
+        /* Panels */
+        .panel {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 28px 24px;
+            transition: background 0.3s, color 0.3s;
+            color: #eee;
+        }
+        .light-mode .panel { background: #fff; color: #222; box-shadow: 0 8px 20px rgba(214,0,108, 0.15); }
+        /* Table for history */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        thead tr { border-bottom: 2px solid #d6006c; }
+        th, td { text-align: left; padding: 8px 12px; }
+        tr:nth-child(even) { background: rgba(214,0,108,0.05); }
+        .light-mode tr:nth-child(even) { background: #f9e8ef; }
+        /* Clear history btn */
+        #history-panel button {
+            background: transparent;
+            border: 2px solid #d6006c;
+            color: #d6006c;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            float: right;
+            user-select: none;
+            transition: background 0.3s;
+        }
+        #history-panel button:hover { background: #d6006c; color: #fff; }
+        /* Utility */
+        .hide { display: none !important; }
+        /* Theme Toggle Button */
+        #theme-toggle {
+            font-size: 1.6em;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            user-select: none;
+            transition: color 0.3s;
+        }
+        #theme-toggle:hover { color: #ff4b8b; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="javascript:void(0)" class="logo" id="home-logo">🛡️ BreachWatch</a>
+        <div>
+            <button id="theme-toggle" title="Toggle light/dark theme">🌙</button>
+            <button id="logout" class="hide">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- LOGIN / REGISTER BOX -->
+        <section id="auth-box">
+            <h2 id="welcome-text">Welcome to BreachWatch</h2>
+            <div id="auth-tabs">
+                <button id="login-tab" class="active">Login</button>
+                <button id="register-tab">Register</button>
+            </div>
+            <form id="login-form">
+                <input id="login-email" type="text" placeholder="Email" required />
+                <input id="login-password" type="password" placeholder="Password" required />
+                <button type="submit" class="btn-primary">Login</button>
+                <div id="login-msg" class="message"></div>
+            </form>
+            <form id="register-form" class="hide">
+                <input id="register-email" type="text" placeholder="Email" required />
+                <input id="register-password" type="password" placeholder="Password" required />
+                <button type="submit" class="btn-primary">Register</button>
+                <div id="register-msg" class="message"></div>
+            </form>
+        </section>
+
+        <!-- TABS AND PANELS -->
+        <section id="main-app" class="hide">
+            <nav class="tabs">
+                <button id="emailtab" class="active">Email Check</button>
+                <button id="passtab">Password Check</button>
+                <button id="histtab">History</button>
+            </nav>
+            <!-- Email Check -->
+            <div id="email-panel" class="panel">
+                <h2>📧 Email Check</h2>
+                <input type="text" id="email-input" placeholder="Enter email" />
+                <button class="btn-primary" id="email-check-btn">Check Email</button>
+                <div id="email-result" class="message"></div>
+            </div>
+            <!-- Password Check -->
+            <div id="password-panel" class="panel hide">
+                <h2>🔑 Password Check</h2>
+                <input type="text" id="password-input" placeholder="Enter password" />
+                <button class="btn-primary" id="password-check-btn">Check Password</button>
+                <div id="password-result" class="message"></div>
+            </div>
+            <!-- History -->
+            <div id="history-panel" class="panel hide">
+                <h2>📜 History</h2>
+                <button id="clear-history-btn">Clear History</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Input</th>
+                            <th>Result</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2025 BreachWatch by Sxxxxxxx</footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const API = "http://localhost:8000/api";
+            let token = localStorage.getItem("jwt") || null;
+
+            // Elements
+            const body = document.body;
+            const themeToggleBtn = document.getElementById("theme-toggle");
+            const logoutBtn = document.getElementById("logout");
+
+            const authBox = document.getElementById("auth-box");
+            const mainApp = document.getElementById("main-app");
+
+            const loginTabBtn = document.getElementById("login-tab");
+            const registerTabBtn = document.getElementById("register-tab");
+
+            const loginForm = document.getElementById("login-form");
+            const registerForm = document.getElementById("register-form");
+
+            const emailTab = document.getElementById("emailtab");
+            const passTab = document.getElementById("passtab");
+            const historyTab = document.getElementById("histtab");
+
+            const emailPanel = document.getElementById("email-panel");
+            const passwordPanel = document.getElementById("password-panel");
+            const historyPanel = document.getElementById("history-panel");
+
+            const emailCheckBtn = document.getElementById("email-check-btn");
+            const passwordCheckBtn = document.getElementById("password-check-btn");
+            const clearHistoryBtn = document.getElementById("clear-history-btn");
+
+            const homeLogo = document.getElementById("home-logo");
+
+            // Theme functions
+            function applyTheme(theme) {
+                if (theme === "dark") {
+                    body.classList.remove("light-mode");
+                    themeToggleBtn.textContent = "🌙";
+                } else {
+                    body.classList.add("light-mode");
+                    themeToggleBtn.textContent = "☀️";
+                }
+                localStorage.setItem("theme", theme);
+            }
+
+            function loadTheme() {
+                const saved = localStorage.getItem("theme") || "dark";
+                applyTheme(saved);
+            }
+
+            // Auth tab switching
+            function showAuthTab(tab) {
+                if (tab === "login") {
+                    loginTabBtn.classList.add("active");
+                    registerTabBtn.classList.remove("active");
+                    loginForm.classList.remove("hide");
+                    registerForm.classList.add("hide");
+                } else {
+                    loginTabBtn.classList.remove("active");
+                    registerTabBtn.classList.add("active");
+                    loginForm.classList.add("hide");
+                    registerForm.classList.remove("hide");
+                }
+                clearMessages();
+            }
+
+            // Tab selection for main app
+            function selectTab(tab) {
+                emailTab.classList.toggle("active", tab === "email");
+                passTab.classList.toggle("active", tab === "password");
+                historyTab.classList.toggle("active", tab === "history");
+
+                emailPanel.classList.toggle("hide", tab !== "email");
+                passwordPanel.classList.toggle("hide", tab !== "password");
+                historyPanel.classList.toggle("hide", tab !== "history");
+
+                if (tab === "history") loadHistory();
+            }
+
+            // Clear login/register messages
+            function clearMessages() {
+                document.getElementById("login-msg").innerText = "";
+                document.getElementById("register-msg").innerText = "";
+            }
+
+            // Show main app and hide auth boxes
+            function showMainApp() {
+                authBox.classList.add("hide");
+                mainApp.classList.remove("hide");
+                logoutBtn.classList.remove("hide");
+                selectTab("email");
+                loadHistory();
+            }
+
+            // Show auth box and hide main app
+            function showAuthBox() {
+                authBox.classList.remove("hide");
+                mainApp.classList.add("hide");
+                logoutBtn.classList.add("hide");
+                showAuthTab("login");
+            }
+
+            // Attach event listeners
+            loginTabBtn.addEventListener('click', () => showAuthTab('login'));
+            registerTabBtn.addEventListener('click', () => showAuthTab('register'));
+
+            emailTab.addEventListener('click', () => selectTab('email'));
+            passTab.addEventListener('click', () => selectTab('password'));
+            historyTab.addEventListener('click', () => selectTab('history'));
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById("login-email").value.trim();
+                const password = document.getElementById("login-password").value;
+                clearMessages();
+                try {
+                    const res = await fetch(`${API}/login`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email, password }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.access_token) {
+                        token = data.access_token;
+                        localStorage.setItem("jwt", token);
+                        showMainApp();
+                    } else {
+                        document.getElementById("login-msg").innerText = data.detail || "Login failed";
+                    }
+                } catch {
+                    document.getElementById("login-msg").innerText = "Network error";
+                }
+            });
+
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById("register-email").value.trim();
+                const password = document.getElementById("register-password").value;
+                clearMessages();
+                try {
+                    const res = await fetch(`${API}/register`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email, password }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.status === "success") {
+                        document.getElementById("register-msg").innerText = "Registration successful! You can log in now.";
+                        showAuthTab("login");
+                    } else {
+                        document.getElementById("register-msg").innerText = data.detail || "Register failed";
+                    }
+                } catch {
+                    document.getElementById("register-msg").innerText = "Network error";
+                }
+            });
+
+            emailCheckBtn.addEventListener('click', async () => {
+                const email = document.getElementById("email-input").value.trim();
+                const resultEl = document.getElementById("email-result");
+                resultEl.innerText = "";
+                if (!email) {
+                    resultEl.innerText = "Please enter an email.";
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API}/check-email`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+                        body: JSON.stringify({ email }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        resultEl.innerText = data.found ? "Breach found!" : "Safe.";
+                        loadHistory();
+                    } else {
+                        if (res.status === 401) logout();
+                        resultEl.innerText = data.detail || "Check failed";
+                    }
+                } catch {
+                    resultEl.innerText = "Network error";
+                }
+            });
+
+            passwordCheckBtn.addEventListener('click', async () => {
+                const pwd = document.getElementById("password-input").value;
+                const resultEl = document.getElementById("password-result");
+                resultEl.innerText = "";
+                if (!pwd) {
+                    resultEl.innerText = "Please enter a password.";
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API}/check-password`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+                        body: JSON.stringify({ password: pwd }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        resultEl.innerText = data.found ? "Breach found!" : "Safe.";
+                        loadHistory();
+                    } else {
+                        if (res.status === 401) logout();
+                        resultEl.innerText = data.detail || "Check failed";
+                    }
+                } catch {
+                    resultEl.innerText = "Network error";
+                }
+            });
+
+            // UPDATED: Clear history -> DELETE /api/history
+            clearHistoryBtn.addEventListener('click', async () => {
+                if (!confirm("Are you sure you want to clear all history?")) return;
+                try {
+                    const res = await fetch(`${API}/history`, {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token },
+                    });
+                    if (res.ok) loadHistory();
+                } catch {}
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem("jwt");
+                token = null;
+                showAuthBox();
+            });
+
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = body.classList.contains("light-mode") ? "light" : "dark";
+                applyTheme(currentTheme === "dark" ? "light" : "dark");
+            });
+
+            // Initialization on page load
+            loadTheme();
+            if (token) {
+                showMainApp();
+            } else {
+                showAuthBox();
+            }
+
+            function applyTheme(theme) {
+                if (theme === "light") {
+                    body.classList.add("light-mode");
+                    themeToggleBtn.textContent = "☀️";
+                } else {
+                    body.classList.remove("light-mode");
+                    themeToggleBtn.textContent = "🌙";
+                }
+                localStorage.setItem("theme", theme);
+            }
+
+            function loadTheme() {
+                const theme = localStorage.getItem("theme") || "dark";
+                applyTheme(theme);
+            }
+
+            // UPDATED: Load history -> GET /api/history with cache-buster
+            async function loadHistory() {
+                try {
+                    const res = await fetch(`${API}/history?ts=${Date.now()}`, {
+                        headers: { Authorization: "Bearer " + token },
+                    });
+                    const data = await res.json();
+                    const tbody = document.getElementById("history-table");
+                    tbody.innerHTML = "";
+                    if (res.ok && Array.isArray(data)) {
+                        data.forEach((row) => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td>${row.type}</td>
+                                <td>${escapeHtml(row.input)}</td>
+                                <td>${row.result}</td>
+                                <td>${row.time}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch {
+                    // silently fail on history load
+                }
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.replace(/[&<>"']/g, function (m) {
+                    return {
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#39;",
+                    }[m];
+                });
+            }
+
+            homeLogo.onclick = () => location.reload();
+
+            // Clear messages helper
+            function clearMessages() {
+                document.getElementById("login-msg").innerText = "";
+                document.getElementById("register-msg").innerText = "";
+            }
+
+            // Show auth tab helper
+            function showAuthTab(tab) {
+                if (tab === "login") {
+                    loginTabBtn.classList.add("active");
+                    registerTabBtn.classList.remove("active");
+                    loginForm.classList.remove("hide");
+                    registerForm.classList.add("hide");
+                } else {
+                    loginTabBtn.classList.remove("active");
+                    registerTabBtn.classList.add("active");
+                    loginForm.classList.add("hide");
+                    registerForm.classList.remove("hide");
+                }
+                clearMessages();
+            }
+
+            // Show main app helper
+            function showMainApp() {
+                authBox.classList.add("hide");
+                mainApp.classList.remove("hide");
+                logoutBtn.classList.remove("hide");
+                selectTab("email");
+                loadHistory();
+            }
+
+            // Show auth box helper
+            function showAuthBox() {
+                authBox.classList.remove("hide");
+                mainApp.classList.add("hide");
+                logoutBtn.classList.add("hide");
+                showAuthTab("login");
+            }
+
+            // Tab selection helper
+            function selectTab(tab) {
+                emailTab.classList.toggle("active", tab === "email");
+                passTab.classList.toggle("active", tab === "password");
+                historyTab.classList.toggle("active", tab === "history");
+
+                emailPanel.classList.toggle("hide", tab !== "email");
+                passwordPanel.classList.toggle("hide", tab !== "password");
+                historyPanel.classList.toggle("hide", tab !== "history");
+
+                if (tab === "history") loadHistory();
+            }
+
+            // Logout helper
+            function logout() {
+                localStorage.removeItem("jwt");
+                token = null;
+                showAuthBox();
+            }
+        });
+    </script>
+</body>
+</html>
