@@ -4,5 +4,5 @@ sqlalchemy
 httpx
 passlib[bcrypt]
 PyJWT
-bcrypt
+bcrypt==4.0.1
 pydantic[email]

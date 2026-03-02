@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>BreachWatch</title>
-    <style>
-        /* Base styles and transitions */
+    <head>
+        <meta charset="UTF-8" />
+        <title>BreachWatch</title>
+        <style>
         body {
             background: #141414;
             color: #fff;
@@ -47,6 +46,14 @@
         .logo:hover {
             color: #d6006c;
         }
+        .user-email-label {
+            font-size: 0.85em;
+            margin-right: 12px;
+            opacity: 0.9;
+        }
+        .light-mode .user-email-label {
+            color: #444;
+        }
         main {
             flex-grow: 1;
             padding: 24px 16px 40px;
@@ -65,7 +72,6 @@
         .light-mode footer {
             color: #999;
         }
-        /* Buttons and inputs */
         button, input[type="text"], input[type="password"] {
             font-family: inherit;
             font-size: 1em;
@@ -114,7 +120,6 @@
         #logout:hover { background: #444; }
         .light-mode #logout { background: #ddd; color: #222; }
         .light-mode #logout:hover { background: #bbb; }
-        /* Auth container */
         #auth-box {
             background: #1f1f1f;
             border-radius: 18px;
@@ -132,10 +137,18 @@
         #auth-box h2 {
             text-align: center;
             font-weight: 700;
-            margin-bottom: 24px;
+            margin-bottom: 4px;
             font-size: 1.8em;
         }
-        /* Professional Login/Register tabs */
+        #auth-subtitle {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .light-mode #auth-subtitle {
+            color: #666;
+        }
         #auth-tabs {
             display: flex;
             justify-content: center;
@@ -175,9 +188,7 @@
             z-index: 2;
             transition: all 0.3s ease;
         }
-        /* Main App */
         #main-app { max-width: 900px; margin: 36px auto 60px auto; }
-        /* Top tabs */
         .tabs { display: flex; justify-content: center; margin-bottom: 16px; user-select: none; }
         .tabs button {
             flex: none;
@@ -199,7 +210,6 @@
             border-color: transparent;
         }
         .tabs button:hover:not(.active) { color: #fff; border-color: #d6006c; }
-        /* Panels */
         .panel {
             background: #1e1e1e;
             border-radius: 16px;
@@ -208,13 +218,11 @@
             color: #eee;
         }
         .light-mode .panel { background: #fff; color: #222; box-shadow: 0 8px 20px rgba(214,0,108, 0.15); }
-        /* Table for history */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         thead tr { border-bottom: 2px solid #d6006c; }
         th, td { text-align: left; padding: 8px 12px; }
         tr:nth-child(even) { background: rgba(214,0,108,0.05); }
         .light-mode tr:nth-child(even) { background: #f9e8ef; }
-        /* Clear history btn */
         #history-panel button {
             background: transparent;
             border: 2px solid #d6006c;
@@ -228,9 +236,51 @@
             transition: background 0.3s;
         }
         #history-panel button:hover { background: #d6006c; color: #fff; }
-        /* Utility */
         .hide { display: none !important; }
-        /* Theme Toggle Button */
+        .message {
+            margin-top: 10px;
+            font-size: 0.9em;
+            min-height: 1.2em;
+        }
+        .message.error {
+            color: #ff6b81;
+        }
+        .message.success {
+            color: #4cd964;
+        }
+        .inline-note {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: -6px;
+            margin-bottom: 10px;
+        }
+        .light-mode .inline-note {
+            color: #777;
+        }
+        .field-row {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #bbb;
+            font-size: 0.8em;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        .toggle-password:hover {
+            color: #fff;
+        }
+        .light-mode .toggle-password {
+            color: #555;
+        }
+        .light-mode .toggle-password:hover {
+            color: #111;
+        }
         #theme-toggle {
             font-size: 1.6em;
             background: transparent;
@@ -247,55 +297,64 @@
     <header>
         <a href="javascript:void(0)" class="logo" id="home-logo">🛡️ BreachWatch</a>
         <div>
+            <span id="user-email-label" class="user-email-label hide"></span>
             <button id="theme-toggle" title="Toggle light/dark theme">🌙</button>
             <button id="logout" class="hide">Logout</button>
         </div>
     </header>
 
     <main>
-        <!-- LOGIN / REGISTER BOX -->
         <section id="auth-box">
             <h2 id="welcome-text">Welcome to BreachWatch</h2>
+            <div id="auth-subtitle">Sign in to check if your email or password appears in known data breaches.</div>
             <div id="auth-tabs">
                 <button id="login-tab" class="active">Login</button>
                 <button id="register-tab">Register</button>
             </div>
             <form id="login-form">
-                <input id="login-email" type="text" placeholder="Email" required />
-                <input id="login-password" type="password" placeholder="Password" required />
-                <button type="submit" class="btn-primary">Login</button>
+                <div class="field-row">
+                    <input id="login-email" type="text" placeholder="Email" autocomplete="email" required />
+                </div>
+                <div class="field-row">
+                    <input id="login-password" type="password" placeholder="Password" autocomplete="current-password" required />
+                    <button type="button" class="toggle-password" data-target="login-password">Show</button>
+                </div>
+                <div class="inline-note">Use the same email/password you registered with. Password must be at least 8 characters.</div>
+                <button type="submit" class="btn-primary" id="login-submit">Login</button>
                 <div id="login-msg" class="message"></div>
             </form>
             <form id="register-form" class="hide">
-                <input id="register-email" type="text" placeholder="Email" required />
-                <input id="register-password" type="password" placeholder="Password" required />
-                <button type="submit" class="btn-primary">Register</button>
+                <div class="field-row">
+                    <input id="register-email" type="text" placeholder="Email" autocomplete="email" required />
+                </div>
+                <div class="field-row">
+                    <input id="register-password" type="password" placeholder="Password (min 8 characters)" autocomplete="new-password" required />
+                    <button type="button" class="toggle-password" data-target="register-password">Show</button>
+                </div>
+                <div class="inline-note">We only use this account to protect your history. Passwords are stored hashed using bcrypt.</div>
+                <button type="submit" class="btn-primary" id="register-submit">Register</button>
                 <div id="register-msg" class="message"></div>
             </form>
         </section>
 
-        <!-- TABS AND PANELS -->
         <section id="main-app" class="hide">
             <nav class="tabs">
                 <button id="emailtab" class="active">Email Check</button>
                 <button id="passtab">Password Check</button>
                 <button id="histtab">History</button>
             </nav>
-            <!-- Email Check -->
             <div id="email-panel" class="panel">
                 <h2>📧 Email Check</h2>
                 <input type="text" id="email-input" placeholder="Enter email" />
                 <button class="btn-primary" id="email-check-btn">Check Email</button>
                 <div id="email-result" class="message"></div>
             </div>
-            <!-- Password Check -->
             <div id="password-panel" class="panel hide">
                 <h2>🔑 Password Check</h2>
                 <input type="text" id="password-input" placeholder="Enter password" />
                 <button class="btn-primary" id="password-check-btn">Check Password</button>
                 <div id="password-result" class="message"></div>
             </div>
-            <!-- History -->
             <div id="history-panel" class="panel hide">
                 <h2>📜 History</h2>
                 <button id="clear-history-btn">Clear History</button>
@@ -318,13 +377,15 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const API = "http://localhost:8000/api";
+            const API = "https://breachwatch-api.onrender.com/api";
             let token = localStorage.getItem("jwt") || null;
+            const MIN_PASSWORD_LENGTH = 8;
+            const MAX_PASSWORD_LENGTH = 72;
 
-            // Elements
             const body = document.body;
             const themeToggleBtn = document.getElementById("theme-toggle");
             const logoutBtn = document.getElementById("logout");
+            const userEmailLabel = document.getElementById("user-email-label");
 
             const authBox = document.getElementById("auth-box");
             const mainApp = document.getElementById("main-app");
@@ -349,7 +410,6 @@
 
             const homeLogo = document.getElementById("home-logo");
 
-            // Theme functions
             function applyTheme(theme) {
                 if (theme === "dark") {
                     body.classList.remove("light-mode");
@@ -366,23 +426,10 @@
                 applyTheme(saved);
             }
 
-            // Auth tab switching
-            function showAuthTab(tab) {
-                if (tab === "login") {
-                    loginTabBtn.classList.add("active");
-                    registerTabBtn.classList.remove("active");
-                    loginForm.classList.remove("hide");
-                    registerForm.classList.add("hide");
-                } else {
-                    loginTabBtn.classList.remove("active");
-                    registerTabBtn.classList.add("active");
-                    loginForm.classList.add("hide");
-                    registerForm.classList.remove("hide");
-                }
-                clearMessages();
+            function isValidEmail(value) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
             }
 
-            // Tab selection for main app
             function selectTab(tab) {
                 emailTab.classList.toggle("active", tab === "email");
                 passTab.classList.toggle("active", tab === "password");
@@ -395,22 +442,31 @@
                 if (tab === "history") loadHistory();
             }
 
-            // Clear login/register messages
+            function setLoggedInEmail(email) {
+                if (email) {
+                    userEmailLabel.textContent = `Logged in as ${email}`;
+                    userEmailLabel.classList.remove("hide");
+                } else {
+                    userEmailLabel.textContent = "";
+                    userEmailLabel.classList.add("hide");
+                }
+            }
+
             function clearMessages() {
                 document.getElementById("login-msg").innerText = "";
                 document.getElementById("register-msg").innerText = "";
             }
 
-            // Show main app and hide auth boxes
             function showMainApp() {
                 authBox.classList.add("hide");
                 mainApp.classList.remove("hide");
                 logoutBtn.classList.remove("hide");
+                const storedEmail = localStorage.getItem("userEmail") || "";
+                setLoggedInEmail(storedEmail);
                 selectTab("email");
                 loadHistory();
             }
 
-            // Show auth box and hide main app
             function showAuthBox() {
                 authBox.classList.remove("hide");
                 mainApp.classList.add("hide");
@@ -418,7 +474,6 @@
                 showAuthTab("login");
             }
 
-            // Attach event listeners
             loginTabBtn.addEventListener('click', () => showAuthTab('login'));
             registerTabBtn.addEventListener('click', () => showAuthTab('register'));
 
@@ -426,11 +481,48 @@
             passTab.addEventListener('click', () => selectTab('password'));
             historyTab.addEventListener('click', () => selectTab('history'));
 
+            document.querySelectorAll(".toggle-password").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetId = btn.getAttribute("data-target");
+                    const input = document.getElementById(targetId);
+                    if (!input) return;
+                    if (input.type === "password") {
+                        input.type = "text";
+                        btn.textContent = "Hide";
+                    } else {
+                        input.type = "password";
+                        btn.textContent = "Show";
+                    }
+                });
+            });
+
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById("login-email").value.trim();
                 const password = document.getElementById("login-password").value;
                 clearMessages();
+                const loginMsg = document.getElementById("login-msg");
+
+                if (!isValidEmail(email)) {
+                    loginMsg.textContent = "Please enter a valid email address.";
+                    loginMsg.className = "message error";
+                    return;
+                }
+                if (!password || password.length < MIN_PASSWORD_LENGTH) {
+                    loginMsg.textContent = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+                    loginMsg.className = "message error";
+                    return;
+                }
+                if (password.length > MAX_PASSWORD_LENGTH) {
+                    loginMsg.textContent = `Password must be at most ${MAX_PASSWORD_LENGTH} characters.`;
+                    loginMsg.className = "message error";
+                    return;
+                }
+
+                const submitBtn = document.getElementById("login-submit");
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = "Logging in...";
                 try {
                     const res = await fetch(`${API}/login`, {
                         method: "POST",
@@ -441,12 +533,23 @@
                     if (res.ok && data.access_token) {
                         token = data.access_token;
                         localStorage.setItem("jwt", token);
+                        localStorage.setItem("userEmail", email);
+                        loginMsg.textContent = "Login successful. Redirecting…";
+                        loginMsg.className = "message success";
                         showMainApp();
                     } else {
-                        document.getElementById("login-msg").innerText = data.detail || "Login failed";
+                        const detail = Array.isArray(data.detail)
+                            ? data.detail.map((d) => d.msg).join(", ")
+                            : data.detail;
+                        loginMsg.textContent = detail || "Login failed";
+                        loginMsg.className = "message error";
                     }
                 } catch {
-                    document.getElementById("login-msg").innerText = "Network error";
+                    loginMsg.textContent = "Network error";
+                    loginMsg.className = "message error";
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
             });
 
@@ -455,6 +558,28 @@
                 const email = document.getElementById("register-email").value.trim();
                 const password = document.getElementById("register-password").value;
                 clearMessages();
+                const registerMsg = document.getElementById("register-msg");
+
+                if (!isValidEmail(email)) {
+                    registerMsg.textContent = "Please enter a valid email address.";
+                    registerMsg.className = "message error";
+                    return;
+                }
+                if (!password || password.length < MIN_PASSWORD_LENGTH) {
+                    registerMsg.textContent = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+                    registerMsg.className = "message error";
+                    return;
+                }
+                if (password.length > MAX_PASSWORD_LENGTH) {
+                    registerMsg.textContent = `Password must be at most ${MAX_PASSWORD_LENGTH} characters.`;
+                    registerMsg.className = "message error";
+                    return;
+                }
+
+                const submitBtn = document.getElementById("register-submit");
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = "Registering...";
                 try {
                     const res = await fetch(`${API}/register`, {
                         method: "POST",
@@ -463,13 +588,23 @@
                     });
                     const data = await res.json();
                     if (res.ok && data.status === "success") {
-                        document.getElementById("register-msg").innerText = "Registration successful! You can log in now.";
+                        registerMsg.textContent = "Registration successful! You can log in now.";
+                        registerMsg.className = "message success";
+                        document.getElementById("login-email").value = email;
                         showAuthTab("login");
                     } else {
-                        document.getElementById("register-msg").innerText = data.detail || "Register failed";
+                        const detail = Array.isArray(data.detail)
+                            ? data.detail.map((d) => d.msg).join(", ")
+                            : data.detail;
+                        registerMsg.textContent = detail || "Register failed";
+                        registerMsg.className = "message error";
                     }
                 } catch {
-                    document.getElementById("register-msg").innerText = "Network error";
+                    registerMsg.textContent = "Network error";
+                    registerMsg.className = "message error";
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
             });
 
@@ -527,7 +662,6 @@
                 }
             });
 
-            // UPDATED: Clear history -> DELETE /api/history
             clearHistoryBtn.addEventListener('click', async () => {
                 if (!confirm("Are you sure you want to clear all history?")) return;
                 try {
@@ -541,7 +675,9 @@
 
             logoutBtn.addEventListener('click', () => {
                 localStorage.removeItem("jwt");
+                localStorage.removeItem("userEmail");
                 token = null;
+                setLoggedInEmail("");
                 showAuthBox();
             });
 
@@ -550,7 +686,6 @@
                 applyTheme(currentTheme === "dark" ? "light" : "dark");
             });
 
-            // Initialization on page load
             loadTheme();
             if (token) {
                 showMainApp();
@@ -574,7 +709,6 @@
                 applyTheme(theme);
             }
 
-            // UPDATED: Load history -> GET /api/history with cache-buster
             async function loadHistory() {
                 try {
                     const res = await fetch(`${API}/history?ts=${Date.now()}`, {
@@ -596,7 +730,6 @@
                         });
                     }
                 } catch {
-                    // silently fail on history load
                 }
             }
 
@@ -615,13 +748,11 @@
 
             homeLogo.onclick = () => location.reload();
 
-            // Clear messages helper
             function clearMessages() {
                 document.getElementById("login-msg").innerText = "";
                 document.getElementById("register-msg").innerText = "";
             }
 
-            // Show auth tab helper
             function showAuthTab(tab) {
                 if (tab === "login") {
                     loginTabBtn.classList.add("active");
@@ -637,7 +768,6 @@
                 clearMessages();
             }
 
-            // Show main app helper
             function showMainApp() {
                 authBox.classList.add("hide");
                 mainApp.classList.remove("hide");
@@ -646,7 +776,6 @@
                 loadHistory();
             }
 
-            // Show auth box helper
             function showAuthBox() {
                 authBox.classList.remove("hide");
                 mainApp.classList.add("hide");
@@ -654,7 +783,6 @@
                 showAuthTab("login");
             }
 
-            // Tab selection helper
             function selectTab(tab) {
                 emailTab.classList.toggle("active", tab === "email");
                 passTab.classList.toggle("active", tab === "password");
@@ -667,7 +795,6 @@
                 if (tab === "history") loadHistory();
             }
 
-            // Logout helper
             function logout() {
                 localStorage.removeItem("jwt");
                 token = null;

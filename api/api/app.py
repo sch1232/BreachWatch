@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, constr
 from typing import Optional
 from datetime import datetime, timedelta
+import os
 import jwt
 import httpx
 import hashlib
@@ -13,8 +14,6 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
 
 from passlib.context import CryptContext
-
-# --- Database setup ---
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./breachwatch.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
@@ -37,42 +36,46 @@ class History(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# --- Config ---
-
-SECRET_KEY = "uY4rPq2L7xZ9dsmB3Vte8XjHwK0nCfNRgxDT5QzWiJafvMO1bHGElSUyopIk6WnR"
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 ALGORITHM = "HS256"
-
-DEHASHED_API_KEY = "8138d9c215mshff9fd1be75d06f1p16ea48jsn7d02a1fe626d"  # Replace with actual key
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
+allowed_origins_env = os.environ.get("FRONTEND_ORIGINS", "")
+if allowed_origins_env:
+    allow_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+else:
+    allow_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict this in production
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Schemas ---
-
 class UserCreate(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: constr(min_length=8, max_length=72)
 
 class CheckInput(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
 
-# --- Utility Functions ---
-
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 def verify_password(plain_password: str, hashed: str) -> bool:
-    return pwd_context.verify(plain_password, hashed)
+    try:
+        return pwd_context.verify(plain_password, hashed)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 def create_token(email: str):
     payload = {"email": email, "exp": datetime.utcnow() + timedelta(hours=12)}
@@ -84,8 +87,6 @@ def verify_token(token: str):
         return payload["email"]
     except:
         return None
-
-# --- Dependencies and auth ---
 
 def get_db():
     db = SessionLocal()
@@ -111,29 +112,31 @@ def get_current_user(authorization: Optional[str] = Header(None), db: Session = 
         raise HTTPException(status_code=401, detail="User not found")
     return email
 
-# --- DeHashed Email Breach Checker ---
+LEAKCHECK_PUBLIC_URL_TEMPLATE = "https://leakcheck.net/api/public?check={email}"
 
-async def check_dehashed_email(email: str) -> bool:
+
+async def check_email_breach(email: str) -> bool:
     cleaned = (email or "").strip()
     if not cleaned:
         return False
-    url = f"https://api.dehashed.com/search?query=email:{cleaned}"
+
+    url = LEAKCHECK_PUBLIC_URL_TEMPLATE.format(email=cleaned)
     headers = {
-        "Authorization": f"Bearer {DEHASHED_API_KEY}"
+        "User-Agent": "BreachWatch-Demo/1.0 (personal project)",
     }
     async with httpx.AsyncClient() as client:
-        resp = await client.get(url, headers=headers)
-        if resp.status_code == 200:
-            data = resp.json()
-            entries = data.get("entries", [])
-            return len(entries) > 0
-        elif resp.status_code == 404:
-            return False
-        else:
-            return False
+        resp = await client.get(url, headers=headers, timeout=10.0)
 
-# --- HIBP Passwords API using k-anonymity (no API key needed) ---
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Email breach service unavailable (status {resp.status_code})",
+        )
 
+    data = resp.json()
+    # LeakCheck public endpoint returns {"found": true/false, ...}
+    found = bool(data.get("found"))
+    return found
 async def check_hibp_password(password: str) -> bool:
     text = (password or "")
     if not text:
@@ -151,8 +154,6 @@ async def check_hibp_password(password: str) -> bool:
             if hash_suffix == suffix:
                 return True
         return False
-
-# --- Routes ---
 
 @app.post("/api/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -178,7 +179,7 @@ def login(user: UserCreate, db: Session = Depends(get_db)):
 async def check_email(input: CheckInput, email: str = Depends(get_current_user), db: Session = Depends(get_db)):
     if not input.email or not input.email.strip():
         raise HTTPException(status_code=400, detail="Email is required")
-    found = await check_dehashed_email(input.email.strip())
+    found = await check_email_breach(input.email.strip())
     result_text = "Breach found" if found else "Safe"
     history_entry = History(type="Email", input=input.email.strip(), result=result_text, time=datetime.utcnow())
     db.add(history_entry)
@@ -192,7 +193,6 @@ async def check_password(input: CheckInput, email: str = Depends(get_current_use
         raise HTTPException(status_code=400, detail="Password is required")
     found = await check_hibp_password(input.password)
     result_text = "Breach found" if found else "Safe"
-    # Do not store raw password
     history_entry = History(type="Password", input="***", result=result_text, time=datetime.utcnow())
     db.add(history_entry)
     db.flush()
@@ -202,7 +202,6 @@ async def check_password(input: CheckInput, email: str = Depends(get_current_use
 @app.get("/api/history")
 def get_history(email: str = Depends(get_current_user), db: Session = Depends(get_db)):
     entries = db.query(History).order_by(History.time.desc()).limit(50).all()
-    # Return ISO 8601 strings for time to ensure consistent rendering
     return [{
         "type": e.type,
         "input": e.input,
