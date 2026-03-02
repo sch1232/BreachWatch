@@ -8,7 +8,7 @@ Live
 - API Docs: https://breachwatch-api.onrender.com/docs
 
 What it does
-- Email check (Have I Been Pwned unifiedsearch, no API key)
+- Email check (LeakCheck public API)
 - Password check (HIBP k‑anonymity)
 - Recent checks saved to history (SQLite)
 
