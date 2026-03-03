@@ -26,6 +26,7 @@ Run locally (Windows)
   pip install -r requirements.txt
   set SECRET_KEY=dev-secret
   uvicorn app:app --reload
+  
 - Docs: http://127.0.0.1:8000/docs
 
 2) Frontend
